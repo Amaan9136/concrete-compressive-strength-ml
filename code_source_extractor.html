@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Map Source from JSON</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+    }
+
+    pre {
+      background: #f4f4f4;
+      padding: 1rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Upload JSON File and Print "source" Keys from Each Cell</h2>
+  <input type="file" id="jsonFile" accept=".json" />
+  <button onclick="handleCopy()">Copy</button>
+  <pre id="output">Waiting for file upload...</pre>
+  <script>
+    document.getElementById('jsonFile').addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const jsonData = JSON.parse(e.target.result);
+
+          if (!Array.isArray(jsonData.cells)) {
+            throw new Error("Invalid structure: 'cells' array not found");
+          }
+
+          // Flatten all `source` arrays from each cell into a single array
+          const allSources = jsonData.cells.flatMap(cell => cell.source || []);
+
+          document.getElementById('output').textContent =
+            "Extracted 'source' values:\n\n" + allSources.join('');
+        } catch (error) {
+          document.getElementById('output').textContent =
+            "Error: " + error.message;
+        }
+      };
+
+      reader.readAsText(file);
+    });
+
+    function handleCopy() {
+      const output = document.getElementById('output');
+      if (output.textContent) {
+        navigator.clipboard.writeText(output.textContent)
+          .then(() => {
+            alert('Copied to clipboard!');
+          })
+          .catch(err => {
+            console.error('Failed to copy: ', err);
+          });
+      } else {
+        alert('Nothing to copy!');
+      }
+    }
+  </script>
+</body>
+
+</html>
